@@ -133,25 +133,15 @@ const fetchOrderList = async () => {
       pageNum: currentPage.value,
       pageSize: pageSize.value
     })
-    
-    console.log('秒杀订单响应数据:', res)
-    console.log('res.data:', res.data)
-    
+
     // 根据实际返回结构调整
     if (res.data && res.data.list) {
       orderList.value = res.data.list
       total.value = Number(res.data.total) || 0
-    } else if (res.data && res.data.records) {
-      orderList.value = res.data.records
-      total.value = Number(res.data.total) || 0
     } else if (Array.isArray(res.data)) {
-      // 如果直接返回数组
       orderList.value = res.data
       total.value = res.data.length
     }
-    
-    console.log('orderList:', orderList.value)
-    console.log('total:', total.value)
   } catch (error: any) {
     console.error('获取订单列表失败:', error)
     ElMessage.error(error.message || '获取订单列表失败')

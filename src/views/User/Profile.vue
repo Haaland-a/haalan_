@@ -110,7 +110,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, type FormInstance, type FormRules, type UploadProps } from 'element-plus'
-import { Plus, Loading } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { updateUserInfo } from '@/api/user'
 import { uploadToOSS, validateImageFile } from '@/utils/upload'
@@ -167,7 +167,7 @@ const formRules: FormRules = {
 }
 
 // 密码验证规则
-const validateConfirmPassword = (rule: any, value: string, callback: any) => {
+const validateConfirmPassword = (_rule: any, value: string, callback: any) => {
   if (value !== passwordForm.newPassword) {
     callback(new Error('两次输入的密码不一致'))
   } else {
@@ -263,8 +263,6 @@ const handleSubmit = async () => {
       if (formData.email) updateData.email = formData.email
       if (formData.avatar) updateData.avatar = formData.avatar
       
-      console.log('提交的数据:', updateData)
-      
       await updateUserInfo(updateData)
       ElMessage.success('保存成功')
       
@@ -288,11 +286,12 @@ const handlePasswordSubmit = async () => {
 
     passwordLoading.value = true
     try {
-      // TODO: 调用修改密码接口（需要后端提供）
-      // await changePassword({
-      //   oldPassword: encryptPassword(passwordForm.oldPassword),
-      //   newPassword: encryptPassword(passwordForm.newPassword)
-      // })
+      // 调用修改密码接口
+      await userStore.changePassword(
+        passwordForm.oldPassword, 
+        passwordForm.newPassword, 
+        passwordForm.confirmPassword
+      )
       
       ElMessage.success('密码修改成功，请重新登录')
       

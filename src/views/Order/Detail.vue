@@ -29,16 +29,15 @@
         <el-descriptions title="订单信息" :column="2" border>
           <el-descriptions-item label="订单号">{{ orderDetail.orderNo }}</el-descriptions-item>
           <el-descriptions-item label="下单时间">{{ orderDetail.createTime }}</el-descriptions-item>
-          <el-descriptions-item label="支付方式">{{ orderDetail.payChannelName || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="支付时间">{{ orderDetail.payTime || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="订单类型">{{ orderDetail.orderTypeName || '-' }}</el-descriptions-item>
         </el-descriptions>
 
         <!-- 收货地址 -->
-        <el-descriptions title="收货信息" :column="2" border class="mt-20">
-          <el-descriptions-item label="收货人">{{ orderDetail.receiverName }}</el-descriptions-item>
-          <el-descriptions-item label="联系电话">{{ orderDetail.receiverPhone }}</el-descriptions-item>
+        <el-descriptions v-if="orderDetail.addressInfo" title="收货信息" :column="2" border class="mt-20">
+          <el-descriptions-item label="收货人">{{ orderDetail.addressInfo.receiverName }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{ orderDetail.addressInfo.receiverPhone }}</el-descriptions-item>
           <el-descriptions-item label="收货地址" :span="2">
-            {{ orderDetail.receiverProvince }}{{ orderDetail.receiverCity }}{{ orderDetail.receiverDistrict }}{{ orderDetail.receiverAddress }}
+            {{ orderDetail.addressInfo.fullAddress || (orderDetail.addressInfo.province || '') + (orderDetail.addressInfo.city || '') + (orderDetail.addressInfo.district || '') + (orderDetail.addressInfo.detailAddress || '') }}
           </el-descriptions-item>
         </el-descriptions>
 
@@ -46,13 +45,13 @@
         <div class="products-section mt-20">
           <h4>商品信息</h4>
           <div class="product-list">
-            <div 
-              v-for="(product, index) in orderDetail.products" 
+            <div
+              v-for="(product, index) in orderDetail.orderItems"
               :key="index"
               class="product-item"
             >
-              <el-image 
-                :src="product.image" 
+              <el-image
+                :src="product.productImage"
                 fit="cover"
                 class="product-image"
               >
@@ -63,7 +62,7 @@
                 </template>
               </el-image>
               <div class="product-info">
-                <div class="product-name">{{ product.name }}</div>
+                <div class="product-name">{{ product.productName }}</div>
                 <div class="product-specs" v-if="product.specifications">
                   {{ formatSpecs(product.specifications) }}
                 </div>
@@ -73,7 +72,7 @@
                 <div class="quantity">x{{ product.quantity }}</div>
               </div>
               <div class="product-total">
-                ¥{{ (product.price * product.quantity).toFixed(2) }}
+                ¥{{ product.totalPrice.toFixed(2) }}
               </div>
             </div>
           </div>
@@ -85,18 +84,14 @@
             <span>商品总额：</span>
             <span>¥{{ orderDetail.totalAmount.toFixed(2) }}</span>
           </div>
-          <div class="amount-row">
-            <span>运费：</span>
-            <span>¥{{ (orderDetail.freightAmount || 0).toFixed(2) }}</span>
-          </div>
           <div class="amount-row discount" v-if="orderDetail.discountAmount">
             <span>优惠：</span>
-            <span>-¥{{ orderDetail.discountAmount.toFixed(2) }}</span>
+            <span>-¥{{ Number(orderDetail.discountAmount).toFixed(2) }}</span>
           </div>
           <el-divider />
           <div class="amount-row total">
             <span>实付金额：</span>
-            <span class="total-price">¥{{ orderDetail.payAmount.toFixed(2) }}</span>
+            <span class="total-price">¥{{ (orderDetail.actualAmount || orderDetail.totalAmount).toFixed(2) }}</span>
           </div>
         </div>
 
@@ -214,9 +209,9 @@ const handleCancel = async () => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    
+
     await cancelOrder(orderDetail.value.orderNo, {
-      reason: '用户主动取消'
+      cancelReason: '用户主动取消'
     })
     ElMessage.success('订单已取消')
     fetchOrderDetail()

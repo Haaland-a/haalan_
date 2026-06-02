@@ -30,6 +30,13 @@ export function getSeckillOrderList(params: PageParams & { status?: number }) {
  * 订单详情
  */
 export function getOrderDetail(orderNo: string) {
+  return Request.get<OrderDetail>(`/order/detail/${orderNo}`)
+}
+
+/**
+ * 秒杀订单详情
+ */
+export function getSeckillOrderDetail(orderNo: string) {
   return Request.get<OrderDetail>(`/order/seckill/detail/${orderNo}`)
 }
 

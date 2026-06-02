@@ -5,7 +5,8 @@ import type {
   UserInfo, 
   UserUpdateRequest,
   AddressInfo,
-  AddressRequest 
+  AddressRequest,
+  ChangePasswordRequest
 } from '@/types'
 
 /**
@@ -76,4 +77,11 @@ export function deleteAddress(addressId: string) {
  */
 export function getAddressDetail(addressId: string) {
   return Request.get<AddressInfo>(`/user/address/${addressId}`)
+}
+
+/**
+ * 修改密码
+ */
+export function changePassword(data: ChangePasswordRequest) {
+  return Request.post('/user/change-password', data)
 }

@@ -57,6 +57,21 @@ export interface UserUpdateRequest {
   avatar?: string
 }
 
+// 修改密码请求
+export interface ChangePasswordRequest {
+  oldPassword: string
+  newPassword: string
+  confirmNewPassword: string
+}
+
+// 分类树节点
+export interface CategoryNode {
+  categoryId: string
+  name: string
+  level: number
+  children: CategoryNode[] | null
+}
+
 // 地址信息
 export interface AddressInfo {
   addressId: string
@@ -94,6 +109,20 @@ export interface ProductSpu {
 
 // 商品SKU信息
 export interface ProductSku {
+  skuId: string
+  skuCode: string
+  skuName: string
+  price: number
+  originalPrice?: number
+  stock: number | string
+  soldCount?: string
+  status?: number
+  specifications: Record<string, string>
+  images?: string[]
+}
+
+// SKU信息（用于商品详情）
+export interface SkuInfo {
   skuId: string
   skuCode: string
   skuName: string

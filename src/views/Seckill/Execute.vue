@@ -69,7 +69,7 @@
             :max="maxQuantity"
             :disabled="!selectedAddress"
           />
-          <span class="limit-tip" v-if="productDetail.limitPerUser > 0">
+          <span class="limit-tip" v-if="Number(productDetail.limitPerUser) > 0">
             （每人限购{{ productDetail.limitPerUser }}件）
           </span>
         </div>
@@ -185,8 +185,9 @@ const selectedAddress = ref<AddressInfo | null>(null)
 // 最大购买数量
 const maxQuantity = computed(() => {
   if (!productDetail.value) return 1
-  return productDetail.value.limitPerUser > 0 
-    ? Math.min(productDetail.value.limitPerUser, productDetail.value.stock)
+  const limit = Number(productDetail.value.limitPerUser)
+  return limit > 0
+    ? Math.min(limit, productDetail.value.stock)
     : productDetail.value.stock
 })
 
@@ -290,7 +291,7 @@ const handleSubmit = async () => {
       skuId: seckillProductId,
       seckillToken: tokenRes.data.seckillToken,
       quantity: quantity.value,
-      addressId: selectedAddress.value.addressId
+      addressId: Number(selectedAddress.value.addressId)
     })
     
     ElMessage.success('秒杀成功')

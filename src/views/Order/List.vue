@@ -33,13 +33,9 @@
 
             <!-- 订单商品 -->
             <div class="order-products">
-              <div 
-                v-for="(product, index) in order.products" 
-                :key="index"
-                class="product-item"
-              >
-                <el-image 
-                  :src="product.image" 
+              <div class="product-item">
+                <el-image
+                  :src="order.productImage"
                   fit="cover"
                   class="product-image"
                 >
@@ -50,14 +46,11 @@
                   </template>
                 </el-image>
                 <div class="product-info">
-                  <div class="product-name">{{ product.name }}</div>
-                  <div class="product-specs" v-if="product.specifications">
-                    {{ formatSpecs(product.specifications) }}
-                  </div>
+                  <div class="product-name">{{ order.productName }}</div>
                 </div>
                 <div class="product-price">
-                  <span class="price">¥{{ product.price.toFixed(2) }}</span>
-                  <span class="quantity">x{{ product.quantity }}</span>
+                  <span class="price">¥{{ order.totalAmount.toFixed(2) }}</span>
+                  <span class="quantity">x{{ order.quantity }}</span>
                 </div>
               </div>
             </div>
@@ -65,7 +58,7 @@
             <!-- 订单底部 -->
             <div class="order-footer">
               <div class="order-total">
-                共{{ order.totalQuantity }}件商品，合计：
+                共{{ order.quantity }}件商品，合计：
                 <span class="total-price">¥{{ order.totalAmount.toFixed(2) }}</span>
               </div>
               <div class="order-actions">
@@ -186,11 +179,6 @@ const getStatusType = (status: number) => {
   return types[status] || ''
 }
 
-// 格式化规格
-const formatSpecs = (specs: Record<string, string>) => {
-  return Object.entries(specs).map(([k, v]) => `${k}: ${v}`).join(', ')
-}
-
 // 去支付
 const handlePay = (order: OrderBrief) => {
   router.push(`/payment?orderNo=${order.orderNo}`)
@@ -206,7 +194,7 @@ const handleCancel = async (order: OrderBrief) => {
     })
     
     await cancelOrder(order.orderNo, {
-      reason: '用户主动取消'
+      cancelReason: '用户主动取消'
     })
     ElMessage.success('订单已取消')
     fetchOrderList()
@@ -223,7 +211,7 @@ const handleViewDetail = (order: OrderBrief) => {
 }
 
 // 申请退款
-const handleRefund = (order: OrderBrief) => {
+const handleRefund = (_order: OrderBrief) => {
   ElMessage.info('退款功能开发中...')
   // TODO: 实现退款对话框
 }

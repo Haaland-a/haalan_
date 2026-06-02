@@ -140,8 +140,8 @@ const getOrderAmount = (order: OrderDetailType | SeckillOrderDetail): number => 
     const item = order.orderItems[0]
     return (Number(item.price) || 0) * (Number(item.quantity) || 0)
   }
-  // 普通订单：使用 payAmount
-  return Number((order as OrderDetailType).payAmount) || 0
+  // 普通订单：使用 actualAmount
+  return Number((order as OrderDetailType).actualAmount) || 0
 }
 
 // 获取订单信息

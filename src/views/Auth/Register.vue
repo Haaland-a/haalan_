@@ -2,7 +2,8 @@
   <div class="register-page">
     <div class="register-container">
       <div class="register-box">
-        <h2 class="register-title">用户注册</h2>
+        <h2 class="register-title">创建账号</h2>
+        <p class="register-subtitle">注册后即可参与限时秒杀</p>
         
         <el-form
           ref="formRef"
@@ -96,7 +97,7 @@ const registerForm = reactive({
   confirmPassword: ''
 })
 
-const validatePass = (rule: any, value: string, callback: any) => {
+const validatePass = (_rule: any, value: string, callback: any) => {
   if (value === '') {
     callback(new Error('请再次输入密码'))
   } else if (value !== registerForm.password) {
@@ -153,45 +154,65 @@ const handleRegister = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 50%, #F5F3FF 100%);
 }
 
 .register-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   padding: 20px;
 }
 
 .register-box {
   background: #fff;
-  border-radius: $radius-lg;
-  padding: 40px;
+  border-radius: 16px;
+  padding: 44px 40px 36px;
   box-shadow: $shadow-lg;
-  
+  border: 1px solid $border-color-lighter;
+
   .register-title {
     text-align: center;
-    font-size: 28px;
+    font-size: 26px;
+    font-weight: 700;
     color: $text-primary;
-    margin-bottom: 30px;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
   }
-  
+
+  .register-subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: $text-secondary;
+    margin-bottom: 32px;
+  }
+
   .register-btn {
     width: 100%;
-    height: 44px;
-    font-size: 16px;
+    height: 46px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.2s;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: $shadow-glow;
+    }
   }
-  
+
   .register-footer {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 24px;
     color: $text-secondary;
-    
+    font-size: 14px;
+
     a {
       color: $primary-color;
-      margin-left: 5px;
-      
+      margin-left: 4px;
+      font-weight: 500;
+
       &:hover {
-        text-decoration: underline;
+        color: $primary-hover;
       }
     }
   }

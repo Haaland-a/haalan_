@@ -61,7 +61,7 @@
           </div>
 
           <!-- 限购信息 -->
-          <div class="limit-section" v-if="productDetail.limitPerUser > 0">
+          <div class="limit-section" v-if="Number(productDetail.limitPerUser) > 0">
             <el-alert
               :title="`每人限购${productDetail.limitPerUser}件`"
               type="warning"
@@ -94,7 +94,7 @@
             <div class="time-row">
               <span class="label">活动状态</span>
               <el-tag :type="getActivityStatusType(productDetail.status)">
-                {{ productDetail.statusName }}
+                {{ statusName }}
               </el-tag>
             </div>
           </div>
@@ -130,12 +130,8 @@
         </div>
       </div>
 
-      <!-- 商品描述 -->
-      <div class="product-description">
-        <h4>商品介绍</h4>
-        <p>{{ productDetail.description || '暂无详细介绍' }}</p>
-      </div>
     </div>
+
 
     <el-empty v-else description="商品不存在" />
   </div>
@@ -197,6 +193,18 @@ const getActivityStatusType = (status: number) => {
   }
   return types[status] || ''
 }
+
+// 状态名称映射
+const statusName = computed(() => {
+  if (!productDetail.value) return ''
+  const names: Record<number, string> = {
+    0: '未开始',
+    1: '进行中',
+    2: '已结束',
+    3: '已取消'
+  }
+  return names[productDetail.value.status] || ''
+})
 
 // 获取商品详情
 const fetchDetail = async () => {

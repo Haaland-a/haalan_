@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { UserInfo, AddressInfo } from '@/types'
-import { login as loginApi, register as registerApi, getUserInfo, logout as logoutApi } from '@/api/user'
+import { login as loginApi, register as registerApi, getUserInfo, logout as logoutApi, changePassword as changePasswordApi } from '@/api/user'
 import { encryptPassword } from '@/utils/common'
 
 export const useUserStore = defineStore('user', () => {
@@ -124,6 +124,28 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 修改密码
+   */
+  async function changePassword(oldPassword: string, newPassword: string, confirmNewPassword: string) {
+    try {
+      // 密码加密
+      const encryptedOldPassword = encryptPassword(oldPassword)
+      const encryptedNewPassword = encryptPassword(newPassword)
+      const encryptedConfirmNewPassword = encryptPassword(confirmNewPassword)
+      
+      const res = await changePasswordApi({
+        oldPassword: encryptedOldPassword,
+        newPassword: encryptedNewPassword,
+        confirmNewPassword: encryptedConfirmNewPassword
+      })
+      
+      return res
+    } catch (error) {
+      throw error
+    }
+  }
+
   return {
     token,
     userInfo,
@@ -135,6 +157,7 @@ export const useUserStore = defineStore('user', () => {
     register,
     fetchUserInfo,
     logout,
-    initUserState
+    initUserState,
+    changePassword
   }
 })

@@ -41,9 +41,9 @@
           <div class="price-section">
             <div class="price-label">价格</div>
             <div class="price-value">
-              <span class="current-price">¥{{ productDetail.minPrice.toFixed(2) }}</span>
-              <span v-if="productDetail.maxPrice > productDetail.minPrice" class="price-range">
-                - ¥{{ productDetail.maxPrice.toFixed(2) }}
+              <span class="current-price">¥{{ calculateMinPrice().toFixed(2) }}</span>
+              <span v-if="calculateMaxPrice() > calculateMinPrice()" class="price-range">
+                - ¥{{ calculateMaxPrice().toFixed(2) }}
               </span>
             </div>
           </div>
@@ -51,7 +51,7 @@
           <div class="info-section">
             <div class="info-row">
               <span class="label">销量</span>
-              <span class="value">{{ productDetail.sales }}</span>
+              <span class="value">{{ selectedSku?.soldCount || '0' }}</span>
             </div>
             <div class="info-row">
               <span class="label">品牌</span>
@@ -94,7 +94,7 @@
             <el-button 
               type="primary" 
               size="large"
-              :disabled="!selectedSku || selectedSku.stock === 0"
+              :disabled="!selectedSku || Number(selectedSku.stock) === 0"
               @click="handleBuyNow"
             >
               立即购买
@@ -109,19 +109,24 @@
       <!-- 商品详情 -->
       <div class="product-detail-content">
         <el-tabs v-model="activeTab">
-          <el-tab-pane label="商品详情" name="detail">
-            <div class="detail-html" v-html="productDetail.detailHtml || '<p>暂无详细内容</p>'"></div>
+          <el-tab-pane label="商品描述" name="detail">
+            <div class="detail-content">
+              <p>{{ productDetail.description || '暂无详细描述' }}</p>
+            </div>
           </el-tab-pane>
           <el-tab-pane label="规格参数" name="specs">
-            <el-descriptions :column="2" border>
-              <el-descriptions-item 
-                v-for="(value, key) in productDetail.specifications" 
-                :key="key"
-                :label="key"
-              >
-                {{ value }}
-              </el-descriptions-item>
-            </el-descriptions>
+            <div v-if="selectedSku && selectedSku.specifications" class="specs-content">
+              <el-descriptions :column="2" border>
+                <el-descriptions-item 
+                  v-for="(value, key) in selectedSku.specifications" 
+                  :key="key"
+                  :label="key"
+                >
+                  {{ value }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </div>
+            <el-empty v-else description="暂无规格信息" />
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -159,12 +164,13 @@ const fetchProductDetail = async () => {
   try {
     const res = await getProductDetail(spuId)
     productDetail.value = res.data
-    
+
     // 默认选中第一个SKU
     if (res.data.skuList && res.data.skuList.length > 0) {
       selectedSku.value = res.data.skuList[0]
     }
   } catch (error: any) {
+    console.error('获取商品详情失败:', error)
     ElMessage.error(error.message || '获取商品详情失败')
   } finally {
     loading.value = false
@@ -181,20 +187,42 @@ const formatSpecs = (specs: Record<string, string>) => {
   return Object.entries(specs).map(([k, v]) => `${k}: ${v}`).join(', ')
 }
 
+// 计算最低价格
+const calculateMinPrice = () => {
+  if (!productDetail.value?.skuList || productDetail.value.skuList.length === 0) {
+    return 0
+  }
+  return Math.min(...productDetail.value.skuList.map(sku => sku.price))
+}
+
+// 计算最高价格
+const calculateMaxPrice = () => {
+  if (!productDetail.value?.skuList || productDetail.value.skuList.length === 0) {
+    return 0
+  }
+  return Math.max(...productDetail.value.skuList.map(sku => sku.price))
+}
+
 // 立即购买
 const handleBuyNow = () => {
   if (!selectedSku.value) {
     ElMessage.warning('请选择商品规格')
     return
   }
-  
-  if (selectedSku.value.stock === 0) {
+
+  if (Number(selectedSku.value.stock) === 0) {
     ElMessage.warning('该规格已售罄')
     return
   }
 
-  // TODO: 跳转到确认订单页面
-  ElMessage.info('功能开发中...')
+  router.push({
+    path: '/order/create',
+    query: {
+      skuId: selectedSku.value.skuId,
+      quantity: 1,
+      price: selectedSku.value.price,
+    },
+  })
 }
 
 // 加入购物车
@@ -204,7 +232,7 @@ const handleAddToCart = () => {
     return
   }
   
-  if (selectedSku.value.stock === 0) {
+  if (Number(selectedSku.value.stock) === 0) {
     ElMessage.warning('该规格已售罄')
     return
   }
@@ -404,6 +432,7 @@ onMounted(() => {
     }
   }
 }
+</style>
 
 @media (max-width: 768px) {
   .product-detail-page {
@@ -412,4 +441,3 @@ onMounted(() => {
     }
   }
 }
-</style>

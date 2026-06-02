@@ -4,7 +4,8 @@ import type {
   ProductDetail, 
   StockInfo,
   PageParams,
-  PageResult 
+  PageResult,
+  CategoryNode
 } from '@/types'
 
 /**
@@ -30,4 +31,14 @@ export function getProductDetail(spuId: number) {
  */
 export function getStockInfo(skuId: number) {
   return Request.get<StockInfo>(`/product/stock/${skuId}`)
+}
+
+/**
+ * 获取分类树
+ */
+export function getCategoryTree(id?: string, level?: number) {
+  const params: any = {}
+  if (id !== undefined) params.id = id
+  if (level !== undefined) params.level = level
+  return Request.get<CategoryNode[]>('/category/tree', params)
 }

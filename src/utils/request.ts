@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { ApiResponse } from '@/types'
 
@@ -38,8 +38,8 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
-    const res = response.data
+  (response) => {
+    const res = response.data as ApiResponse
     
     // 如果返回的状态码不是200，则认为是错误
     if (res.code !== 200) {
@@ -53,7 +53,7 @@ service.interceptors.response.use(
       return Promise.reject(new Error(res.message || '请求失败'))
     }
     
-    return res
+    return res as any
   },
   (error) => {
     console.error('响应错误:', error)

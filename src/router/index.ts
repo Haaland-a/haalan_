@@ -19,6 +19,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '商品详情' }
       },
       {
+        path: 'product/search',
+        name: 'ProductSearch',
+        component: () => import('@/views/Product/Search.vue'),
+        meta: { title: '商品搜索' }
+      },
+      {
         path: 'seckill/activity/:activityId',
         name: 'SeckillActivity',
         component: () => import('@/views/Seckill/Activity.vue'),
@@ -127,7 +133,7 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition
     } else {
@@ -137,7 +143,7 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   // 设置页面标题
   document.title = `${to.meta.title || '秒杀商城'} - 企业级秒杀商城`
   

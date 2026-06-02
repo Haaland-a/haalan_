@@ -8,7 +8,7 @@ import type { OssCredential } from '@/api/upload'
  * @param folder 文件夹路径（可选）
  * @returns 文件URL
  */
-export async function uploadToOSS(file: File, folder: string = 'avatar'): Promise<string> {
+export async function uploadToOSS(file: File, _folder: string = 'avatar'): Promise<string> {
   try {
     // 1. 获取上传凭证
     const credentialRes = await getOssCredential()
