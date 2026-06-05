@@ -242,7 +242,7 @@ export interface SeckillExecuteRequest {
   skuId: number
   seckillToken: string
   quantity: number
-  addressId: number
+  addressId: string
 }
 
 // 秒杀订单信息

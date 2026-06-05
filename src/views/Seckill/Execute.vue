@@ -291,7 +291,7 @@ const handleSubmit = async () => {
       skuId: seckillProductId,
       seckillToken: tokenRes.data.seckillToken,
       quantity: quantity.value,
-      addressId: Number(selectedAddress.value.addressId)
+      addressId: selectedAddress.value.addressId
     })
     
     ElMessage.success('秒杀成功')
