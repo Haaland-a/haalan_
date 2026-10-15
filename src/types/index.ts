@@ -20,6 +20,13 @@ export interface PageResult<T> {
   list: T[]
 }
 
+// search-service PageDTO 的响应结构（只有 total / pages / list，没有 pageNum / pageSize）
+export interface PageDTOResult<T> {
+  total: string
+  pages: number
+  list: T[]
+}
+
 // 用户登录请求
 export interface LoginRequest {
   username: string
@@ -353,6 +360,8 @@ export interface OrderDetail {
   status: number
   statusName: string
   createTime: string
+  payTime?: string
+  cancelTime?: string
   payExpireTime: string
   remainingSeconds: string
   orderItems: OrderItem[]
@@ -417,6 +426,19 @@ export interface CancelOrderRequest {
   cancelReason: string
 }
 
+// 创建普通订单请求
+export interface CreateOrderRequest {
+  addressId: string
+  remark?: string
+  items: CreateOrderItem[]
+}
+
+// 创建订单商品项
+export interface CreateOrderItem {
+  skuId: string
+  quantity: number
+}
+
 // 退款申请
 export interface RefundApplyRequest {
   orderNo: string
@@ -431,4 +453,35 @@ export interface RefundInfo {
   refundAmount: number
   status: number
   statusName: string
+}
+
+// 购物车单项
+export interface CartItem {
+  id: string
+  skuId: string
+  spuId: string
+  productName: string
+  productImage: string
+  specifications: Record<string, any> | null
+  price: number
+  quantity: number
+  totalPrice: number
+  stock: number
+  selected: number
+  valid: boolean
+  invalidReason: string | null
+}
+
+// 购物车汇总
+export interface CartInfo {
+  items: CartItem[]
+  totalCount: number
+  totalQuantity: number
+  selectedAmount: number
+}
+
+// 结算页商品项（由购物车或商品详情页带入）
+export interface CheckoutItem {
+  skuId: string
+  quantity: number
 }

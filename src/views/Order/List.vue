@@ -5,11 +5,12 @@
         <div class="card-header">
           <span>我的订单</span>
           <el-radio-group v-model="statusFilter" @change="handleStatusChange">
-            <el-radio-button :label="undefined">全部</el-radio-button>
-            <el-radio-button :label="0">待支付</el-radio-button>
-            <el-radio-button :label="1">已支付</el-radio-button>
-            <el-radio-button :label="2">已取消</el-radio-button>
-            <el-radio-button :label="3">已完成</el-radio-button>
+            <el-radio-button :value="undefined">全部</el-radio-button>
+            <el-radio-button :value="0">待支付</el-radio-button>
+            <el-radio-button :value="1">已支付</el-radio-button>
+            <el-radio-button :value="2">已发货</el-radio-button>
+            <el-radio-button :value="3">已完成</el-radio-button>
+            <el-radio-button :value="4">已取消</el-radio-button>
           </el-radio-group>
         </div>
       </template>
@@ -49,7 +50,7 @@
                   <div class="product-name">{{ order.productName }}</div>
                 </div>
                 <div class="product-price">
-                  <span class="price">¥{{ order.totalAmount.toFixed(2) }}</span>
+                  <span class="price">¥{{ Number(order.totalAmount).toFixed(2) }}</span>
                   <span class="quantity">x{{ order.quantity }}</span>
                 </div>
               </div>
@@ -59,7 +60,7 @@
             <div class="order-footer">
               <div class="order-total">
                 共{{ order.quantity }}件商品，合计：
-                <span class="total-price">¥{{ order.totalAmount.toFixed(2) }}</span>
+                <span class="total-price">¥{{ Number(order.totalAmount).toFixed(2) }}</span>
               </div>
               <div class="order-actions">
                 <el-button 
@@ -110,15 +111,53 @@
         />
       </div>
     </el-card>
+
+    <!-- 退款申请对话框 -->
+    <el-dialog v-model="refundVisible" title="申请退款" width="460px">
+      <el-form ref="refundFormRef" :model="refundForm" :rules="refundRules" label-width="90px">
+        <el-form-item label="订单号">
+          <span class="refund-order-no">{{ refundForm.orderNo }}</span>
+        </el-form-item>
+        <el-form-item label="退款金额" prop="refundAmount">
+          <el-input-number
+            v-model="refundForm.refundAmount"
+            :min="0.01"
+            :max="refundMaxAmount"
+            :precision="2"
+            :step="1"
+            controls-position="right"
+            class="refund-amount"
+          />
+          <span class="refund-tip">最多可退 ¥{{ refundMaxAmount.toFixed(2) }}</span>
+        </el-form-item>
+        <el-form-item label="退款原因" prop="refundReason">
+          <el-input
+            v-model="refundForm.refundReason"
+            type="textarea"
+            :rows="3"
+            maxlength="200"
+            show-word-limit
+            placeholder="请说明退款原因，便于客服审核"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="refundVisible = false">取消</el-button>
+        <el-button type="primary" :loading="refundSubmitting" @click="submitRefund">
+          提交申请
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 import { Picture } from '@element-plus/icons-vue'
-import { getOrderList, cancelOrder } from '@/api/order'
+import { getOrderList, cancelOrder, applyRefund } from '@/api/order'
 import type { OrderBrief } from '@/types'
 
 const router = useRouter()
@@ -130,6 +169,36 @@ const orderList = ref<OrderBrief[]>([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+
+// 退款
+const refundVisible = ref(false)
+const refundSubmitting = ref(false)
+const refundFormRef = ref<FormInstance>()
+const refundForm = reactive({
+  orderNo: '',
+  refundAmount: 0,
+  refundReason: ''
+})
+const refundRules: FormRules = {
+  refundAmount: [
+    { required: true, message: '请输入退款金额', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: any, callback: any) => {
+        const amount = Number(value)
+        if (!Number.isFinite(amount) || amount <= 0) {
+          callback(new Error('退款金额必须大于 0'))
+        } else if (amount > refundMaxAmount.value) {
+          callback(new Error(`退款金额不能超过实付金额 ¥${refundMaxAmount.value.toFixed(2)}`))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  refundReason: [{ required: true, message: '请填写退款原因', trigger: 'blur' }]
+}
+const refundMaxAmount = ref(0)
 
 // 获取订单列表
 const fetchOrderList = async () => {
@@ -144,6 +213,9 @@ const fetchOrderList = async () => {
     total.value = parseInt(res.data.total)
   } catch (error) {
     console.error('获取订单列表失败:', error)
+    ElMessage.error('获取订单列表失败，请稍后重试')
+    orderList.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
@@ -173,8 +245,9 @@ const getStatusType = (status: number) => {
   const types: Record<number, any> = {
     0: 'warning',
     1: 'success',
-    2: 'info',
-    3: ''
+    2: '',
+    3: 'info',
+    4: 'info'
   }
   return types[status] || ''
 }
@@ -199,8 +272,10 @@ const handleCancel = async (order: OrderBrief) => {
     ElMessage.success('订单已取消')
     fetchOrderList()
   } catch (error: any) {
+    // 'cancel' 是 ElMessageBox 用户点取消的返回值，不算错误
     if (error !== 'cancel') {
       console.error('取消订单失败:', error)
+      ElMessage.error('取消订单失败，请稍后重试')
     }
   }
 }
@@ -211,9 +286,37 @@ const handleViewDetail = (order: OrderBrief) => {
 }
 
 // 申请退款
-const handleRefund = (_order: OrderBrief) => {
-  ElMessage.info('退款功能开发中...')
-  // TODO: 实现退款对话框
+const handleRefund = (order: OrderBrief) => {
+  refundMaxAmount.value = Number(order.actualAmount ?? order.totalAmount)
+  refundForm.orderNo = order.orderNo
+  refundForm.refundAmount = refundMaxAmount.value
+  refundForm.refundReason = ''
+  refundVisible.value = true
+}
+
+const submitRefund = async () => {
+  if (!refundFormRef.value) return
+  try {
+    await refundFormRef.value.validate()
+  } catch {
+    return
+  }
+  refundSubmitting.value = true
+  try {
+    const res = await applyRefund({
+      orderNo: refundForm.orderNo,
+      refundAmount: refundForm.refundAmount,
+      refundReason: refundForm.refundReason
+    })
+    const info = res.data
+    ElMessage.success(info?.statusName ? `退款申请已提交：${info.statusName}` : '退款申请已提交')
+    refundVisible.value = false
+    fetchOrderList()
+  } catch (error: any) {
+    ElMessage.error(error?.message || '退款申请失败')
+  } finally {
+    refundSubmitting.value = false
+  }
 }
 
 onMounted(() => {
@@ -367,5 +470,20 @@ onMounted(() => {
     margin-top: 24px;
     justify-content: flex-end;
   }
+}
+
+.refund-order-no {
+  font-family: monospace;
+  color: $text-regular;
+}
+
+.refund-amount {
+  width: 160px;
+}
+
+.refund-tip {
+  margin-left: 12px;
+  font-size: 12px;
+  color: $text-secondary;
 }
 </style>

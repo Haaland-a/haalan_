@@ -13,6 +13,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '首页' }
       },
       {
+        path: 'products',
+        name: 'ProductList',
+        component: () => import('@/views/Product/List.vue'),
+        meta: { title: '全部商品' }
+      },
+      {
         path: 'product/:spuId',
         name: 'ProductDetail',
         component: () => import('@/views/Product/Detail.vue'),
@@ -21,8 +27,14 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'product/search',
         name: 'ProductSearch',
-        component: () => import('@/views/Product/Search.vue'),
+        component: () => import('@/views/Product/List.vue'),
         meta: { title: '商品搜索' }
+      },
+      {
+        path: 'cart',
+        name: 'Cart',
+        component: () => import('@/views/Cart/index.vue'),
+        meta: { title: '购物车', requiresAuth: true }
       },
       {
         path: 'seckill/activity/:activityId',
@@ -65,6 +77,12 @@ const routes: RouteRecordRaw[] = [
         name: 'OrderDetail',
         component: () => import('@/views/Order/Detail.vue'),
         meta: { title: '订单详情', requiresAuth: true }
+      },
+      {
+        path: 'order/create',
+        name: 'OrderCreate',
+        component: () => import('@/views/Order/Create.vue'),
+        meta: { title: '确认订单', requiresAuth: true }
       },
       {
         path: 'seckill-order/detail/:orderNo',

@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { ApiResponse } from '@/types'
 
@@ -37,24 +37,32 @@ service.interceptors.request.use(
 )
 
 // 响应拦截器
-service.interceptors.response.use(
-  (response) => {
+// 这里必须「欺骗」axios 的拦截器类型：拦截器契约要求返回 AxiosResponse，
+// 但我们实际想返回的是 response.data（即 ApiResponse<T>）。
+// 用 axios.AxiosInterceptorManager 的 any 泛型签名注册，再用一个带类型的
+// 内部函数做真正的实现，这样既保留调用点的 ApiResponse<T> 类型，
+// 又不把类型抹成 any。
+const responseInterceptor: Parameters<AxiosInstance['interceptors']['response']['use']>[0] =
+  ((response: AxiosResponse) => {
     const res = response.data as ApiResponse
-    
+
     // 如果返回的状态码不是200，则认为是错误
     if (res.code !== 200) {
       ElMessage.error(res.message || '请求失败')
-      
+
       // 401: 未授权，需要重新登录
       if (res.code === 401) {
         handleUnauthorized()
       }
-      
+
       return Promise.reject(new Error(res.message || '请求失败'))
     }
-    
-    return res as any
-  },
+
+    return res as unknown as ApiResponse
+  }) as never
+
+service.interceptors.response.use(
+  responseInterceptor,
   (error) => {
     console.error('响应错误:', error)
     

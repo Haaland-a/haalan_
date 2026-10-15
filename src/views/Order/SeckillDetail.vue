@@ -60,15 +60,15 @@
           <h4>价格信息</h4>
           <div class="price-row">
             <span>商品总额:</span>
-            <span>¥{{ (orderDetail.totalAmount || 0).toFixed(2) }}</span>
+            <span>¥{{ Number(orderDetail.totalAmount || 0).toFixed(2) }}</span>
           </div>
           <div class="price-row" v-if="orderDetail.discountAmount">
             <span>优惠金额:</span>
-            <span class="discount">-¥{{ orderDetail.discountAmount.toFixed(2) }}</span>
+            <span class="discount">-¥{{ Number(orderDetail.discountAmount).toFixed(2) }}</span>
           </div>
           <div class="price-row total">
             <span>实付金额:</span>
-            <span class="total-price">¥{{ (orderDetail.actualAmount || orderDetail.totalAmount || 0).toFixed(2) }}</span>
+            <span class="total-price">¥{{ Number(orderDetail.actualAmount || orderDetail.totalAmount || 0).toFixed(2) }}</span>
           </div>
         </div>
 

@@ -34,11 +34,11 @@
           <div class="price-section">
             <div class="seckill-price">
               <span class="label">秒杀价</span>
-              <span class="price">¥{{ productDetail.seckillPrice.toFixed(2) }}</span>
+              <span class="price">¥{{ Number(productDetail.seckillPrice).toFixed(2) }}</span>
             </div>
             <div class="original-price">
               <span class="label">原价</span>
-              <span class="price">¥{{ productDetail.originalPrice.toFixed(2) }}</span>
+              <span class="price">¥{{ Number(productDetail.originalPrice).toFixed(2) }}</span>
             </div>
             <div class="discount-tag" v-if="productDetail.originalPrice > 0">
               <el-tag type="danger" size="large">

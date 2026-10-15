@@ -21,7 +21,7 @@
               </div>
               <div class="info-row">
                 <span class="label">秒杀价格：</span>
-                <span class="value price">¥{{ result.orderInfo.seckillPrice.toFixed(2) }}</span>
+                <span class="value price">¥{{ Number(result.orderInfo.seckillPrice).toFixed(2) }}</span>
               </div>
               <div class="info-row">
                 <span class="label">购买数量：</span>
@@ -29,7 +29,7 @@
               </div>
               <div class="info-row">
                 <span class="label">应付总额：</span>
-                <span class="value price">¥{{ result.orderInfo.totalAmount.toFixed(2) }}</span>
+                <span class="value price">¥{{ Number(result.orderInfo.totalAmount).toFixed(2) }}</span>
               </div>
             </div>
             

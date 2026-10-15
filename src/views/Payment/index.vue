@@ -135,10 +135,12 @@ const paymentMethods = [
 
 // 获取订单金额（兼容普通订单和秒杀订单）
 const getOrderAmount = (order: OrderDetailType | SeckillOrderDetail): number => {
-  // 秒杀订单：从订单项中计算
+  // 秒杀订单：从订单项中累加计算（必须遍历全部明细，只取 [0] 会漏算多商品订单）
   if ('orderItems' in order && order.orderItems && order.orderItems.length > 0) {
-    const item = order.orderItems[0]
-    return (Number(item.price) || 0) * (Number(item.quantity) || 0)
+    return order.orderItems.reduce(
+      (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0),
+      0
+    )
   }
   // 普通订单：使用 actualAmount
   return Number((order as OrderDetailType).actualAmount) || 0

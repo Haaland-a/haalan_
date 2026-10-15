@@ -10,6 +10,8 @@
 
         <nav class="nav-menu">
           <router-link to="/" class="nav-item">首页</router-link>
+          <router-link to="/products" class="nav-item">全部商品</router-link>
+          <router-link to="/seckill" class="nav-item">秒杀专区</router-link>
           <router-link v-if="isLoggedIn" to="/orders" class="nav-item">我的订单</router-link>
           <router-link v-if="isLoggedIn" to="/seckill-orders" class="nav-item">秒杀订单</router-link>
           <router-link v-if="isLoggedIn" to="/user" class="nav-item">个人中心</router-link>
@@ -30,6 +32,14 @@
                 <el-button :icon="Search" @click="handleSearch">搜索</el-button>
               </template>
             </el-input>
+          </div>
+
+          <!-- 购物车入口 -->
+          <div class="cart-entry" @click="goCart">
+            <el-badge :value="cartCount" :hidden="cartCount === 0" :max="99">
+              <el-icon :size="20"><ShoppingCart /></el-icon>
+            </el-badge>
+            <span class="cart-text">购物车</span>
           </div>
 
           <div class="user-area">
@@ -70,25 +80,44 @@
     <!-- Footer -->
     <footer class="layout-footer">
       <div class="footer-container">
-        <p>&copy; 2024 秒杀商城. All rights reserved.</p>
+        <div class="footer-links">
+          <router-link to="/products">全部商品</router-link>
+          <router-link to="/seckill">秒杀专区</router-link>
+          <router-link to="/cart">购物车</router-link>
+          <router-link to="/orders">我的订单</router-link>
+          <router-link to="/user">个人中心</router-link>
+        </div>
+        <p class="footer-copy">&copy; 2024 秒杀商城. All rights reserved.</p>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useCartStore } from '@/stores/cart'
 import { ElMessage } from 'element-plus'
-import { Search } from '@element-plus/icons-vue'
+import { Search, ShoppingCart } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const cartStore = useCartStore()
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const userInfo = computed(() => userStore.userInfo)
+const cartCount = computed(() => cartStore.count)
 const searchKeyword = ref('')
+
+const goCart = () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    router.push({ path: '/login', query: { redirect: '/cart' } })
+    return
+  }
+  router.push('/cart')
+}
 
 const handleSearch = () => {
   if (!searchKeyword.value.trim()) {
@@ -100,6 +129,10 @@ const handleSearch = () => {
     query: { keyword: searchKeyword.value.trim() }
   })
 }
+
+onMounted(() => {
+  cartStore.refreshCount()
+})
 
 const handleCommand = (command: string) => {
   switch (command) {

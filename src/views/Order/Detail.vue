@@ -68,11 +68,11 @@
                 </div>
               </div>
               <div class="product-price">
-                <div class="price">¥{{ product.price.toFixed(2) }}</div>
+                <div class="price">¥{{ Number(product.price).toFixed(2) }}</div>
                 <div class="quantity">x{{ product.quantity }}</div>
               </div>
               <div class="product-total">
-                ¥{{ product.totalPrice.toFixed(2) }}
+                ¥{{ Number(product.totalPrice).toFixed(2) }}
               </div>
             </div>
           </div>
@@ -82,7 +82,7 @@
         <div class="amount-section mt-20">
           <div class="amount-row">
             <span>商品总额：</span>
-            <span>¥{{ orderDetail.totalAmount.toFixed(2) }}</span>
+            <span>¥{{ Number(orderDetail.totalAmount).toFixed(2) }}</span>
           </div>
           <div class="amount-row discount" v-if="orderDetail.discountAmount">
             <span>优惠：</span>
@@ -91,7 +91,7 @@
           <el-divider />
           <div class="amount-row total">
             <span>实付金额：</span>
-            <span class="total-price">¥{{ (orderDetail.actualAmount || orderDetail.totalAmount).toFixed(2) }}</span>
+            <span class="total-price">¥{{ Number(orderDetail.actualAmount || orderDetail.totalAmount).toFixed(2) }}</span>
           </div>
         </div>
 

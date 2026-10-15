@@ -28,7 +28,7 @@
               <div class="name">{{ productDetail.productName }}</div>
               <div class="price">
                 <span class="label">秒杀价：</span>
-                <span class="value">¥{{ productDetail.seckillPrice.toFixed(2) }}</span>
+                <span class="value">¥{{ Number(productDetail.seckillPrice).toFixed(2) }}</span>
               </div>
               <div class="stock">
                 <span class="label">剩余库存：</span>
@@ -78,7 +78,7 @@
         <div class="amount-section">
           <div class="amount-row">
             <span>商品总额：</span>
-            <span>¥{{ (productDetail.seckillPrice * quantity).toFixed(2) }}</span>
+            <span>¥{{ (Number(productDetail.seckillPrice) * quantity).toFixed(2) }}</span>
           </div>
           <div class="amount-row">
             <span>运费：</span>
@@ -87,7 +87,7 @@
           <el-divider />
           <div class="amount-row total">
             <span>应付总额：</span>
-            <span class="total-price">¥{{ (productDetail.seckillPrice * quantity).toFixed(2) }}</span>
+            <span class="total-price">¥{{ (Number(productDetail.seckillPrice) * quantity).toFixed(2) }}</span>
           </div>
         </div>
 
@@ -193,7 +193,7 @@ const maxQuantity = computed(() => {
 
 // 是否可以提交
 const canSubmit = computed(() => {
-  return selectedAddress.value && agreeTerms.value && quantity.value > 0
+  return selectedAddress.value?.addressId && agreeTerms.value && quantity.value > 0
 })
 
 // 获取商品详情
@@ -224,10 +224,14 @@ const fetchAddressList = async () => {
   addressLoading.value = true
   try {
     const res = await getAddressList()
-    addressList.value = res.data
-    
+    // 规范化地址数据，兼容后端可能返回的 addressId 或 id
+    addressList.value = (res.data || []).map((addr: any) => ({
+      ...addr,
+      addressId: addr.addressId || addr.id
+    }))
+
     // 自动选择默认地址
-    const defaultAddr = res.data.find(addr => addr.isDefault)
+    const defaultAddr = addressList.value.find(addr => addr.isDefault)
     if (defaultAddr) {
       selectedAddress.value = defaultAddr
     }
@@ -257,7 +261,7 @@ const goBack = () => {
 
 // 提交秒杀
 const handleSubmit = async () => {
-  if (!productDetail.value || !selectedAddress.value) {
+  if (!productDetail.value || !selectedAddress.value?.addressId) {
     ElMessage.warning('请选择收货地址')
     return
   }

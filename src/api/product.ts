@@ -16,7 +16,13 @@ export function searchProducts(params: PageParams & {
   categoryId?: number
   sort?: 'price_asc' | 'price_desc'
 }) {
-  return Request.get<PageResult<ProductSpu>>('/product/search', params)
+  // search-service 的 ProductSearchDTO 继承 PageQuery，字段名为 pageNo（不是 pageNum），
+  // 直接传 pageNum 会被后端忽略并永远返回第 1 页，这里做一次字段映射。
+  const { pageNum, ...rest } = params
+  return Request.get<PageResult<ProductSpu>>('/product/search', {
+    ...rest,
+    ...(pageNum !== undefined ? { pageNo: pageNum } : {})
+  })
 }
 
 /**

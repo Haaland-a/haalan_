@@ -1,11 +1,12 @@
 import { Request } from '@/utils/request'
-import type { 
+import type {
   OrderBrief,
   OrderDetail,
   PayRequest,
   PayResponse,
   PaymentResult,
   CancelOrderRequest,
+  CreateOrderRequest,
   RefundApplyRequest,
   RefundInfo,
   PageParams,
@@ -45,6 +46,13 @@ export function getSeckillOrderDetail(orderNo: string) {
  */
 export function cancelOrder(orderNo: string, data: CancelOrderRequest) {
   return Request.post<{ orderNo: string; status: number; statusName: string }>(`/order/cancel/${orderNo}`, data)
+}
+
+/**
+ * 创建普通订单（普通商品购买）
+ */
+export function createOrder(data: CreateOrderRequest) {
+  return Request.post<OrderDetail>('/order/create', data)
 }
 
 /**

@@ -89,6 +89,21 @@
             </div>
           </div>
 
+          <!-- 购买数量 -->
+          <div class="quantity-section">
+            <span class="label">数量</span>
+            <el-input-number
+              v-model="quantity"
+              :min="1"
+              :max="maxQuantity"
+              :disabled="!selectedSku || Number(selectedSku.stock) === 0"
+              size="large"
+            />
+            <span v-if="selectedSku" class="stock-hint">
+              库存 {{ selectedSku.stock }} 件
+            </span>
+          </div>
+
           <!-- 操作按钮 -->
           <div class="action-buttons">
             <el-button 
@@ -99,7 +114,13 @@
             >
               立即购买
             </el-button>
-            <el-button size="large" @click="handleAddToCart">
+            <el-button
+              size="large"
+              :icon="ShoppingCart"
+              :disabled="!selectedSku || Number(selectedSku.stock) === 0"
+              :loading="addingToCart"
+              @click="handleAddToCart"
+            >
               加入购物车
             </el-button>
           </div>
@@ -137,17 +158,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { ShoppingCart } from '@element-plus/icons-vue'
 import { getProductDetail } from '@/api/product'
+import { addToCart } from '@/api/cart'
+import { useUserStore } from '@/stores/user'
+import { useCartStore } from '@/stores/cart'
 import type { ProductDetail, SkuInfo } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
+const cartStore = useCartStore()
 
 // 状态
 const loading = ref(false)
+const quantity = ref(1)
+const addingToCart = ref(false)
 const productDetail = ref<ProductDetail | null>(null)
 const selectedSku = ref<SkuInfo | null>(null)
 const activeTab = ref('detail')
@@ -180,7 +209,15 @@ const fetchProductDetail = async () => {
 // 选择SKU
 const selectSku = (sku: SkuInfo) => {
   selectedSku.value = sku
+  // 切换规格时数量重置，避免超出新规格库存
+  quantity.value = 1
 }
+
+// 可选数量上限
+const maxQuantity = computed(() => {
+  const stock = Number(selectedSku.value?.stock ?? 0)
+  return stock > 0 ? stock : 1
+})
 
 // 格式化规格
 const formatSpecs = (specs: Record<string, string>) => {
@@ -215,30 +252,50 @@ const handleBuyNow = () => {
     return
   }
 
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+
   router.push({
     path: '/order/create',
     query: {
+      spuId: productDetail.value?.spuId,
       skuId: selectedSku.value.skuId,
-      quantity: 1,
-      price: selectedSku.value.price,
+      quantity: quantity.value,
     },
   })
 }
 
 // 加入购物车
-const handleAddToCart = () => {
+const handleAddToCart = async () => {
   if (!selectedSku.value) {
     ElMessage.warning('请选择商品规格')
     return
   }
-  
+
   if (Number(selectedSku.value.stock) === 0) {
     ElMessage.warning('该规格已售罄')
     return
   }
 
-  // TODO: 调用加入购物车接口
-  ElMessage.success('已加入购物车')
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+
+  addingToCart.value = true
+  try {
+    await addToCart(selectedSku.value.skuId, quantity.value)
+    ElMessage.success('已加入购物车')
+    cartStore.refreshCount()
+  } catch (error: any) {
+    ElMessage.error(error?.message || '加入购物车失败')
+  } finally {
+    addingToCart.value = false
+  }
 }
 
 onMounted(() => {
@@ -407,6 +464,24 @@ onMounted(() => {
               color: $text-secondary;
             }
           }
+        }
+      }
+
+      .quantity-section {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+
+        .label {
+          font-size: 14px;
+          color: $text-regular;
+          min-width: 40px;
+        }
+
+        .stock-hint {
+          font-size: 13px;
+          color: $text-secondary;
         }
       }
 
